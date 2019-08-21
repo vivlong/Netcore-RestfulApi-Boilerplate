@@ -7,6 +7,7 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using ServiceStack;
 
 namespace Api
 {
@@ -19,7 +20,21 @@ namespace Api
 
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>()
-                .Build();
+												.UseContentRoot(Directory.GetCurrentDirectory())
+																.ConfigureAppConfiguration((context, config) =>
+																{
+																				var env = context.HostingEnvironment;
+																				config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+																								.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);
+																				config.AddEnvironmentVariables();
+																})
+																.ConfigureLogging((hostingContext, logging) =>
+																{
+																				logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
+																				logging.AddConsole();
+																				logging.AddDebug();
+																})
+																.UseStartup<Startup>()
+																.Build();
     }
 }
